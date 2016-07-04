@@ -1,0 +1,43 @@
+.subunit.DNK,
+.subunit.DNB { 
+    fill: #dcd; 
+}
+.subunit.DNK:hover {
+    fill:red;
+}
+.subunit.DEU { fill: #cdd; }
+.subunit.SWE { fill: #cdc; }
+.subunit.NOW { fill: #ddc; }
+// .subunit.SWE { display: none; }
+.subunit-boundary {
+  fill: none;
+  stroke: #777;
+  stroke-dasharray: 2,2;
+  stroke-linejoin: round;
+}
+
+.subunit-boundary.DNK {
+  stroke: #aaa;
+}
+.map-content {
+    position:absolute;
+    top:0;
+    bottom:0;
+    width:100%;
+    margin-left:-8px;
+}
+#map {
+    height:100%;
+    overflow:hidden;
+}
+svg {
+    top:0;
+    left:0;
+    position:absolute;
+}
+
+#controls {
+    position: absolute;
+    top: 20px;
+    right: 100px;
+}

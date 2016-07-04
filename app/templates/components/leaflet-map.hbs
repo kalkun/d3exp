@@ -1,0 +1,11 @@
+<!-- {{yield}} -->
+<div class="map-content">
+    <div id="map"></div>
+    <div id="controls">
+        <div class="btn-group" role="group" aria-label="...">
+          <button {{action "casualties"}} title="Toggle incidents with casualties on or off" type="button" class="btn {{if casual-toggle "btn-success" "btn-default"}}">Casualties</button>
+          <button type="button" class="btn btn-default">Middle</button>
+          <button type="button" class="btn btn-default">Right</button>
+        </div>
+    </div>
+</div>
