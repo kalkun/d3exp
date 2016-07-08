@@ -6,12 +6,72 @@ export default Ember.Component.extend({
             .range(['#fff5f0','#fee0d2','#fcbba1','#fc9272','#fb6a4a','#ef3b2c','#cb181d','#99000d'])
             .domain([68,110]),
 
+    setText : function(d) {
+        return  "Last incident: " + d.values.date + 
+                "\nLocation: " + d.values.city + ", " + d.values.country +
+                "\nIncidents: " + d.values.count + 
+                "\nTotal fatalities: " + d.values.fatalities + 
+                "\nTotal injuries: " + d.values.injuries + 
+                "\nMost frequent weapon: " + d.values.weapon.name + 
+                "\nMost frequent known perpetrator: " + d.values.perpetrator.name;
+    },
+
+    getFrequency : function(arr, key, exclude) {
+        exclude = exclude || [];
+        var freqs = {}
+        var name = '';
+        var max = 0;
+        for (var i = 0, len = arr.length; i < len; i++) {
+            var val = arr[i][key]
+            if (val in exclude) {
+                continue;
+            } 
+            freqs[val] = (freqs[val] || 0) +1; 
+            if (freqs[val] > max) {
+                max = freqs[val];
+                name = val;
+            }
+        }
+        return {
+            name : name,
+            mode : max
+        }
+    },
+
+    getRollUp : function(collection, byIncidents) {
+        var _this = this;
+        // console.log("byIncidents ", byIncidents);
+        return d3.nest()
+            .key(function(d) { return d.stamp}) 
+            .rollup(function(leaves) {
+                return {
+                    stamp       : leaves[0].stamp,
+                    count       : leaves.length,
+                    fatalities  : d3.sum(leaves, function(d) {
+                        return d.fatalities;
+                    }),
+                    injuries    : d3.sum(leaves, function(d) {
+                        return d.injuries;
+                    }),
+                    city        : leaves[0].city,
+                    country     : leaves[0].country,
+                    weapon      : _this.getFrequency(leaves, "weapon"),
+                    perpetrator : _this.getFrequency(leaves, "perpetrator", {"Unknown" : 0, "Other" : 1}),
+                    date        : d3.max(leaves, function(d) {
+                        return d.date
+                    }),
+                    coords      : leaves[0].coords,
+                }
+            })
+            .entries(collection)
+    },
+
     didRender : function() {
         var _this = this;
        
         if (_this.get("hasInitialized")) return;
          var map = L.map('map').setView([55.6, 12.5], 3),
-         // var map = L.map('map').setView([-41.2858, 174.7868], 13),
+
              mapLink = 
                 '<a href="http://openstreetmap.org">OpenStreetMap</a>';
              L.tileLayer(
@@ -23,77 +83,42 @@ export default Ember.Component.extend({
 
         new L.geoJson({"type": "LineString","coordinates":[[0,0],[0,0]]}).addTo(map);
 
-        // initialize an svg element controlled by leaflet.
         map._initPathRoot() 
 
         _this.set("map", map);
-
-        // var svg = d3.select(map.getPanes().overlayPane).append("svg")
         var svg = d3.select("#map").select("svg"),
             g = svg.append("g");
 
-        // var color = d3.scale.category20c();  // d3 has built-in Colors - Color Set 3
-        // var color = d3.scale.ordinal(d3.scale.category20c);
-        // color.domain([0, 41]);
-
-
-        // var dataset = d3.range([0, 41]);
-
-        // for (var i = 0; i < 100; i++) {
-        //     console.log("color: ", color(i))
-        // }
-        // console.log("standard ", color());
         d3.csv("locations_latlong.csv", function(d) {
-            // console.log(d);
-            // console.log("count", +d.Count)
-            // console.log(d);
             if (!+d.latitude || !+d.longitude)
                 return null;
             return {
                 coords : new L.LatLng(+d.latitude, +d.longitude),
-                // year : new Date(d.Date).getYear(),
+                stamp : d.latitude + d.longitude,
                 date : d.Date,
-                fatalities : d.Fatalities,
-                injuries : d.Injuries,
+                fatalities : +d.Fatalities,
+                injuries : +d.Injuries,
                 perpetrator : d.Perpetrator,
                 description : d.Description,
                 weapon : d.Weapon,
-                // count : +d.Count,
+
                 city : d.City,
                 country : d.Country
             };
         }, function(error, collection) {
             if (error) throw error;
 
-            // console.log(collection);
-               var rollUp = d3.nest()
-                .key(function(d) { return d.city}) 
-                .rollup(function(leaves) { 
-                    return {
-                        count   : leaves.length,
-                        city    : leaves[0].city,
-                        country : leaves[0].country,
-                        date    : d3.max(leaves, function(d) {
-                            // console.log(d.date) 
-                            return d.date
-                        }),
-                        coords  : leaves[0].coords,
-
-
-                    }
-                })
-                .entries(collection)
+               var rollUp = _this.getRollUp(collection);
             _this.set(
                 "rollUp", 
                 rollUp
             );
 
             var color = _this.get("color");
-            
-            // for (var i = 68; i < 110; i++) {
-            //     console.log(i, color(i), ['#fff5f0','#fee0d2','#fcbba1','#fc9272','#fb6a4a','#ef3b2c','#cb181d','#99000d'].indexOf(color(i)) +1 );
-            // }
-            // console.log(collection);
+
+
+
+
             var zoom = map.getZoom();
             var feature = g.selectAll("circle")
             .data(rollUp);
@@ -111,44 +136,73 @@ export default Ember.Component.extend({
             _this.set(
                 "text-titles", 
                 feature.append("title")
-                    .text(function(d) {
-                        return "Date: " + d.values.date + "\n" + "Location: " + d.values.city + "," + d.values.country + "\n" + "Incidents: " + d.values.count;
-                    })
+                    .text(_this.setText)
             )
         
             map.on("viewreset", _this.update, _this);
+            feature.on("click", function(a, b, c, d, e) {
+                // console.log("clicked circleClick ", a);
+                _this.send("circleClick", a);
+            })
 
-            // var promise = new Promise(function(resolve) {
-                // console.log("ost ", ost);
-                // resolve()                
-            // }).then(function() {
-            // console.log(_this.get("rollUp"));
+
+
+
+
                 
             _this.update();
             _this.set("data", collection);
             _this.set("hasInitialized", true);
-            // })
+
 
         })      
     },
 
     update : function () {
-        // console.log("map zoom ", map.getZoom(), 4 * map.getZoom(), Math.pow(map.getZoom(), 2));
+
         var _this = this;
         var rollUp = _this.get("rollUp");
         var map     = _this.get("map");
         var feature = _this.get("feature");
         var zoom = map.getZoom();
-        feature.attr("r", function(d) {
-            // return zoom * Math.log(d.count);
-            // console.log(d.values.count, rollUp[d.city], d.city)
+        var feature = this.get("feature");
+        var color = this.get("color");
+        var byIncidents = this.get("radius-toggle")
 
-            return zoom * Math.log(d.values.count +1)
-            // return zoom * Math.log(rollUp[d.city].count)
+        feature = feature.data(rollUp)
+        feature.exit().remove();
+
+        this.set("feature", feature);
+
+        feature.enter().append("circle")
+            
+            .append("title")
+            .text(this.setText)
+
+        feature
+            .style("stroke", "black")  
+            .style("opacity", .6) 
+            .style("fill", function(d) { 
+                return color(new Date(d.values.date).getYear())
+            })
+        var text = this.get("text-titles").data(rollUp);
+
+            text.exit().remove()
+            text.enter().append("titles")
+            text.text(this.setText)
+
+        this.set("text-titles", text);
+
+        feature.attr("r", function(d) {
+
+            var amount = byIncidents ? d.values.count : d.values.fatalities
+            // console.log(d.values.city, byIncidents, d.values.count, d.values.fatalities, zoom * Math.log(amount +1));
+            return zoom * Math.log(amount +1)
+
         });
         feature.attr("transform", 
         function(d) { 
-            // console.log("OST ", d)
+
             return "translate("+ 
                 map.latLngToLayerPoint(d.values.coords).x +","+ 
                 map.latLngToLayerPoint(d.values.coords).y +")";
@@ -156,101 +210,109 @@ export default Ember.Component.extend({
         )
     },
     "casual-toggle" : true, 
+    "radius-toggle" : false,
 
-    toggleCasualties : Ember.observer("casual-toggle", function() {
+    toggler : Ember.observer("casual-toggle", "radius-toggle", function() {
 
-        var collection = this.get("data");
-        var feature = this.get("feature");
-        // feature.data([]).exit().remove()
-        var color = this.get("color");
         var rollUp;
-        // console.log("casualties toggle", this.get("casual-toggle"));
+        var collection = this.get("data");
+
         if (this.get("casual-toggle")) {
-            rollUp = d3.nest()
-                .key(function(d) { return d.city}) 
-                .rollup(function(leaves) { 
-                    return {
-                        count   : leaves.length,
-                        city    : leaves[0].city,
-                        country : leaves[0].country,
-                        date    : d3.max(leaves, function(d) {
-                            // console.log(d.date) 
-                            return d.date
-                        }),
-                        coords  : leaves[0].coords,
-                    }
-                })
-                .entries(collection)
+            rollUp = this.getRollUp(collection);
         } else {
-            rollUp = d3.nest()
-                .key(function(d) { return d.city}) 
-                .rollup(function(leaves) { 
-                    return {
-                        count   : leaves.length,
-                        city    : leaves[0].city,
-                        country : leaves[0].country,
-                        date    : d3.max(leaves, function(d) {
-                            // console.log(d.date) 
-                            return d.date
-                        }),
-                        coords  : leaves[0].coords,
-
-
-                    }
-                })
-                .entries(collection.filter(function(el) {
-                    // if (el.city == "Krakow") console.log(el.city, el);
-                    // if (el.city == "Copenhagen") console.log(el.city, el)
+            rollUp = this.getRollUp(collection.filter(function(el) {
                     return el.fatalities > 0;
                 }))
         }
-        // console.log(rollUp.find(function(d) {
-        //     if (d.key == "Krakow") console.log(d.key, d)
-        //     if (d.key == "Copenhagen") console.log(d.key, d)
-        //     return d.key == "Krakow";
-        // }))
-        feature = feature.data(rollUp)
-        feature.exit().remove();
-        // feature.enter().append("circle");
-        this.set("feature", feature);
 
-        feature.enter().append("circle")
-            .style("stroke", "black")  
-            .style("opacity", .6) 
-            .style("fill", function(d) { 
-                return color(new Date(d.values.date).getYear())
-            })
-            .append("title")
-            .text(function(d) {
-                return "Date: " + d.values.date + "\n" + "Location: " + d.values.city + "," + d.values.country + "\n" + "Incidents: " + d.values.count;
-            })
-            // feature.selectAll("title").exit().remove()
-            console.log("exit titles ", feature.selectAll("title").data(rollUp));
-        // feature.selectAll("svg:title").exit().remove()
-        // feature.selectAll("svg:title").remove()
-        // feature.append("svg:title")
-        // var text = this.get("text-titles")
-        // this.set("text-titles", text.data(rollUp))
-        var text = this.get("text-titles").data(rollUp);
 
-            // .data(rollUp)
-            console.log("enter ", text.enter(), "\nexit ", text.exit(), "\ntext ", text.append('titles'))
-            console.log("enter ", feature.enter(), "\nexit ", feature.exit(), "\ntext ", feature.append('titles'))
-            text.exit().remove()
-            text.enter().append("titles")
-            text.text(function(d) {
-                // if (d.key == "Krakow") console.log(d)
-                return "Date: " + d.values.date + "\n" + "Location: " + d.values.city + "," + d.values.country + "\n" + "Incidents: " + d.values.count;
-            });
-        // this.set("feature", feature)
-        this.update();
-        this.set("text-titles", text);
+        this.set("rollUp", rollUp);
+        this.update(this.get("radius-toggle"));
+        if (this.get("show-info")) {
+            var city_id = this.get("selected-info")
+            var city = this.get("rollUp").find(function(el) {
+                return el.key == city_id;
+            })
+            this.set("cityOverview", {
+                latest              : city.values.date,
+                location            : city.values.city + ", " + city.values.country,
+                incidents           : city.values.count,
+                fatalities          : city.values.fatalities,
+                injuries            : city.values.injuries,
+                weapon              : city.values.weapon.name,
+                weapon_count        : city.values.weapon.mode,
+                perpetrator         : city.values.perpetrator.name,
+                perpetrator_count   : city.values.perpetrator.mode,
+            })
+
+        }
     }),
 
     actions : {
         casualties : function() {
             this.toggleProperty("casual-toggle");
-            // this.get("toggleCasualties");
+
+        },
+        radius : function() {
+            this.toggleProperty("radius-toggle");
+        },
+        circleClick : function(city) {
+
+
+            this.set("selected-info", city.values.stamp)
+            // old:
+            this.set("cityStats", this.get("data").filter(function(el) {
+                return el.stamp == city.values.stamp;
+            }));
+
+            this.set("cityOverview", {
+                latest              : city.values.date,
+                location            : city.values.city + ", " + city.values.country,
+                incidents           : city.values.count,
+                fatalities          : city.values.fatalities,
+                injuries            : city.values.injuries,
+                weapon              : city.values.weapon.name,
+                weapon_count        : city.values.weapon.mode,
+                perpetrator         : city.values.perpetrator.name,
+                perpetrator_count   : city.values.perpetrator.mode,
+            })
+
+            this.set("details", {
+                "type" : "perpetrator", 
+                "city" : city.values.city,
+                "country" : city.values.country 
+            })
+
+            // this.set("show-diagram", true);
+
+
+            this.set("show-info", true);
+        },
+        // showDiagram : function() {
+        //     this.set("show-diagram", true);
+        // },
+
+        closeInfo : function(target) {
+            this.set("show-info", false); 
+        },
+
+        getMessage : function(action) {
+            if (action.forward == "showDiagram") {
+
+                var pieType = action.type
+                // var currentCity = this.get("details");
+                this.set("details.type", pieType)
+                this.set("show-diagram", true);
+            } else if (action.forward == "closeInfo") {
+                this.set('show-info', false);
+            } else if (action.forward == "toggleCasualties") {
+                this.toggleProperty("casual-toggle")
+            }
+        }, 
+
+        closeDiagram : function() {
+            // old:
+            this.set("show-diagram", false);
         }
     }
 

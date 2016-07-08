@@ -20,7 +20,7 @@ module.exports = function(environment) {
     contentSecurityPolicy : {
       'script-src' : "'self' 'unsafe-eval'",
       'img-src'   : "* data:",
-      'style-src' : "* 'unsafe-eval'"
+      'style-src' : "* 'unsafe-eval' 'unsafe-inline'"
     }
   };
 

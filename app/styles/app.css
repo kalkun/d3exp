@@ -24,13 +24,16 @@
     top:0;
     bottom:0;
     width:100%;
-    margin-left:-8px;
+    // margin-left:-8px;
+}
+.btn-group.hide {
+  display:none;
 }
 #map {
     height:100%;
     overflow:hidden;
 }
-svg {
+#map svg {
     top:0;
     left:0;
     position:absolute;
@@ -40,4 +43,54 @@ svg {
     position: absolute;
     top: 20px;
     right: 100px;
+}
+.diagram-content {
+    position:absolute;
+    top:0;
+    width:100%;
+    height:100%;
+    background-color: rgba(255,255,255,0.75);
+}
+.diagram {
+    // position: absolute;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+.diagram .arc text {
+  font: 20px sans-serif;
+  fill:black;
+  text-anchor: middle;
+  text-shadow: -1px 0 white, 0 1px white, 1px 0 white, 0 -1px white;
+}
+
+.diagram .arc path {
+  stroke: #fff;
+}
+.diagram .minor {
+  visibility:hidden;
+}
+.diagram .minor:hover {
+  visibility:visible
+}
+
+.info-box {
+  position:relative;
+  width: 50%;
+  margin: auto;
+  margin-top: 200px;
+  // text-align:center;
+}
+.hidden {
+  display:none;
+}
+.align-right {
+  text-align:right;
+  display:inline-block;
+  float:right;
+}
+.subheader {
+  display:inline=block;
+  width:100%;
+  line-height:35px;
 }

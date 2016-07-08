@@ -2,10 +2,25 @@
 <div class="map-content">
     <div id="map"></div>
     <div id="controls">
-        <div class="btn-group" role="group" aria-label="...">
-          <button {{action "casualties"}} title="Toggle incidents with casualties on or off" type="button" class="btn {{if casual-toggle "btn-success" "btn-default"}}">Casualties</button>
-          <button type="button" class="btn btn-default">Middle</button>
-          <button type="button" class="btn btn-default">Right</button>
+        <div class="btn-group" role="group" class="{{if show-diagram "hide"}}">
+          <button {{action "casualties"}} title="Toggle including incidents with no casualties on and off" type="button" class="btn {{if casual-toggle "btn-success" "btn-default"}}">
+              {{if casual-toggle "All incidents" "Lethal incidents"}}
+          </button>
+          <button {{action "radius"}} title="Toggle between radius by number of incidents and radius by number of fatalities" type="button" class="btn {{if radius-toggle "btn-danger" "btn-success"}}">
+              {{if radius-toggle "Radius by incidents" "Radius by casualties"}}
+          </button>
+          <!-- <button type="button" class="btn btn-default">Right</button> -->
         </div>
     </div>
 </div>
+{{#unless show-diagram}}
+{{#if show-info}}
+    <div {{action "closeInfo" this}} class="diagram-content">
+    </div>
+        {{info-box data=cityOverview allIncidents=casual-toggle meta=details action="getMessage"}}
+{{/if}}
+{{/unless}}
+
+{{#if show-diagram}}
+    {{circle-diagram data=cityStats meta=details action="closeDiagram"}}
+{{/if}}

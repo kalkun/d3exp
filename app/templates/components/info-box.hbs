@@ -1,0 +1,105 @@
+<!-- <div {{action "close"}} class="diagram-content">
+</div> -->
+    <div class="info-box">
+        <div class="panel panel-default">
+            <div class=panel-heading>
+                <h4 class="panel-title">
+                {{meta.city}}, {{meta.country}}
+                </h4>
+                <div class="subheader">
+                    
+                    {{#if allIncidents}}
+                    All incidents included
+                    {{else}}
+                    Only incidents leading to casualties included
+                    {{/if}}
+                    <div class="align-right">
+                        <button {{action "toggleCasualties"}} class="btn btn-default">Toggle</button>
+<!--                          <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                            Dropdown
+                            <span class="caret"></span>
+                          </button>
+                          <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                            <li><a href="#">Action</a></li>
+                            <li><a href="#">Another action</a></li>
+                            <li><a href="#">Something else here</a></li>
+                            <li role="separator" class="divider"></li>
+                            <li><a href="#">Separated link</a></li>
+                          </ul> -->
+                    </div>
+                </div>
+            </div>
+            <div class="panel-body">
+                <table class="table">
+                    <!--             <thead>
+                        <tr>
+                            <th>Detail</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    latest              : d.values.date,
+                    location            : d.values.city + ", " + d.values.country,
+                    incidents           : d.values.count,
+                    fatalities          : d.values.fatalities,
+                    injuries            : d.values.injuries,
+                    weapon              : d.values.weapon,name,
+                    weapon_count        : d.values.weapon.mode,
+                    perpetrator         : d.values.perpetrator.name,
+                    perpetrator_count   : d.values.perpetrator.mode,
+                    -->
+                    <tbody>
+                        <tr>
+                            <td>
+                                Last incident
+                            </td>
+                            <td>
+                                {{data.latest}}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Total incidents
+                            </td>
+                            <td>
+                                {{data.incidents}}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Total fatalities</td>
+                            <td>{{data.fatalities}}</td>
+                        </tr>
+                        <tr>
+                            <td>Total injuries</td>
+                            <td>{{data.injuries}}</td>
+                        </tr>
+                        <tr>
+                            <td>Most frequent weapon</td>
+                            <td>{{data.weapon}}</td>
+                        </tr>
+                        <tr>
+                            <td>{{data.weapon}}</td>
+                            <td>{{data.weapon_count}}</td>
+                        </tr>
+                        <tr>
+                            <td>Most frequent known perpetrator</td>
+                            {{#if data.perpetrator}}
+                            <td>{{data.perpetrator}}</td>
+                            {{else}}
+                            <td>Unknown</td>
+                            {{/if}}
+                        </tr>
+                        {{#if data.perpetrator}}
+                        <tr>
+                            <td>{{data.perpetrator}}</td>
+                            <td>{{data.perpetrator_count}}</td>
+                        </tr>
+                        {{/if}}
+                    </tbody>
+                </table>
+            </div>
+            <div class="panel-footer">
+                <button class="btn btn-default" {{action "openDiagram" "perpetrator"}}>Show Perpetrators</button>
+                <button class="btn btn-default" {{action "openDiagram" "weapon"}}>Show Weapons</button>
+            </div>
+        </div>
+    </div>
