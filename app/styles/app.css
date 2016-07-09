@@ -97,3 +97,6 @@
   height: 600px;
   overflow-y:scroll;
 }
+.logbook .logrow .logdate {
+  white-space:nowrap;
+}
