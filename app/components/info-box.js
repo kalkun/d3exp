@@ -3,9 +3,11 @@ import Ember from 'ember';
 export default Ember.Component.extend({
 
     actions : {
-        toggleCasualties : function() {
+        toggleCasualties : function(num) {
             this.sendAction('action', {
-                forward : "toggleCasualties"
+                forward : "toggleCasualties",
+                num     : num
+
             });
         },
         openDiagram : function(type) {

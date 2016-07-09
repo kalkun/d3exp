@@ -100,3 +100,13 @@
 .logbook .logrow .logdate {
   white-space:nowrap;
 }
+.info-box .dropdown-menu.cas-toggle {
+    top: initial;
+    right:0;
+    left:initial;
+    padding-top:0;
+    padding-bottom:0;
+}
+.marked {
+  background-color:#c9c9c9;
+}

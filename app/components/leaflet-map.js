@@ -264,7 +264,6 @@ export default Ember.Component.extend({
     actions : {
         casualties : function() {
             this.toggleProperty("casual-toggle");
-
         },
         radius : function() {
             this.toggleProperty("radius-toggle");
@@ -291,6 +290,7 @@ export default Ember.Component.extend({
             } else if (action.forward == "closeInfo") {
                 this.set('show-info', false);
             } else if (action.forward == "toggleCasualties") {
+                this.set("casual-toggle", action.num == 2)
                 this.toggleProperty("casual-toggle")
             } else if (action.forward == "reverseLog") {
                 this.set("cityStats", this.get("cityStats").reverseObjects());

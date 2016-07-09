@@ -13,19 +13,21 @@
                     {{else}}
                     Only incidents leading to casualties included
                     {{/if}}
+                    [{{data.incidents}}]
                     <div class="align-right">
-                        <button {{action "toggleCasualties"}} class="btn btn-default">Toggle</button>
-<!--                          <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                            Dropdown
+                        <!-- <button {{action "toggleCasualties"}} class="btn btn-default">Toggle</button> -->
+                         <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                            {{#if allIncidents}}
+                                All incidents
+                            {{else}}
+                                Lethal incidents
+                            {{/if}}
                             <span class="caret"></span>
                           </button>
-                          <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-                            <li><a href="#">Action</a></li>
-                            <li><a href="#">Another action</a></li>
-                            <li><a href="#">Something else here</a></li>
-                            <li role="separator" class="divider"></li>
-                            <li><a href="#">Separated link</a></li>
-                          </ul> -->
+                          <ul class="dropdown-menu cas-toggle" aria-labelledby="dropdownMenu1">
+                            <li class="{{if allIncidents "marked"}}"><a {{action "toggleCasualties" 1}}  href="#">All incidents</a></li>
+                            <li class="{{unless allIncidents "marked"}}"><a {{action "toggleCasualties" 2}} href="#">Lethal incidents</a></li>
+                          </ul>
                     </div>
                 </div>
             </div>
@@ -105,8 +107,8 @@
                 {{/unless}}
             </div>
             <div class="panel-footer">
-                <button class="btn btn-default" {{action "openDiagram" "perpetrator"}}>Show all Perpetrators</button>
-                <button class="btn btn-default" {{action "openDiagram" "weapon"}}>Show all Weapons</button>
+                <button class="btn btn-default" {{action "openDiagram" "perpetrator"}}>Show Perpetrators</button>
+                <button class="btn btn-default" {{action "openDiagram" "weapon"}}>Show Weapons</button>
                 {{#unless show-log}}
                     <button class="btn btn-default" {{action "showLog"}}>Show log</button>
                 {{else}}
