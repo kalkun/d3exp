@@ -10,14 +10,12 @@ export default Ember.Component.extend({
 
     didRender : function() {
 
-        console.log("didRender ", this.get("data"))
         var _this = this;
         this.set("collection", 
 
             d3.nest()
             .key(function(d) {return d[_this.get("meta.type")]}) // d.perpetrator})
             .rollup(function(leaves) {
-                // console.log(leaves);
                 return {
                     count : leaves.length,
                     name : leaves[0][_this.get("meta.type")]
@@ -26,7 +24,6 @@ export default Ember.Component.extend({
             .entries(this.get("data")).reverse()
         );
         this.get("color").domain(this.get("collection.length"))
-        // console.log("collection ", this.get("collection"));
         this.update()
     },
 
@@ -76,15 +73,11 @@ export default Ember.Component.extend({
                     .attr("text-anchor", "middle");               
             })
             .on("mouseout", function(d) {
-                // console.log("YES OLD VALUES ARE BACKED UP ", oldValues.cls, _this.$(oldValues.cls),  _this.$(oldValues.cls).attr("transform"));
                 g.selectAll(oldValues.cls)
                     .attr("transform", oldValues.transform)
                     .attr("text-anchor", oldValues.textAnchor)
                     .attr("dy", null)
-                // _this.$(oldValues.cls)
-                //     .attr("transform", oldValues.transform)
                 _this.$(".diagram text.default").attr("style", "visibility:visible;");
-                // console.log(_this.$(oldValues.cls).attr("transform"))
             })
             .attr("d", arc);
 
@@ -92,18 +85,13 @@ export default Ember.Component.extend({
         // http://stackoverflow.com/a/21775732/2853237
         var getAngle = function (d) {
             return (180 / Math.PI * (d.startAngle + d.endAngle) / 2 - 90);
-            // console.log("startAngle ", d.startAngle);
-            // return 180 / Math.PI * d.startAngle;
         };
 
         g.selectAll("text").data(data)
             .enter()
             .append("text")
             .attr("class", function(d) {
-                // console.log(d.value, Math.abs(d.startAngle - d.endAngle));
-                // var cls = d.data.values.perpetrator.replace(/\s|\(|\)/g, "_")
                 var cls = d.data.values.name.replace(/\W/g, '');
-                // console.log(cls);
                 if (d.endAngle- d.startAngle < 0.05) {
                     cls += " minor";
                 } else {
@@ -112,7 +100,6 @@ export default Ember.Component.extend({
                 return cls + " perp-label";
             })
             .attr("dx", ".35em")
-            // .attr("text-anchor", "start")
             .attr("text-anchor", function(d) {
                 // are we past the center?
                 return (d.endAngle + d.startAngle)/2 > Math.PI ?
@@ -128,7 +115,6 @@ export default Ember.Component.extend({
                 d.cy = Math.sin(a) * (radius * 0.5);
                 // return d.y = Math.sin(a) * (radius * 0.8);
             })
-            // .attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; })
             .attr("transform", function(d) { 
                 var r = getAngle(d);
                 var c = arc.centroid(d);
@@ -162,11 +148,8 @@ export default Ember.Component.extend({
             .text(this.get("meta.city") + ", " + this.get("meta.country"))
     },
 
-    //"show-diagram"  : false,
-
     actions : {
         close : function() {
-            // this.get("closeDiagram")();
             this.sendAction();
             this.set("show-diagram", false);
         }

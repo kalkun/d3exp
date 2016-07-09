@@ -78,8 +78,7 @@
   position:relative;
   width: 50%;
   margin: auto;
-  margin-top: 200px;
-  // text-align:center;
+  margin-top: 100px;
 }
 .hidden {
   display:none;
@@ -93,4 +92,8 @@
   display:inline=block;
   width:100%;
   line-height:35px;
+}
+.logbook { 
+  height: 600px;
+  overflow-y:scroll;
 }

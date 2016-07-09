@@ -29,24 +29,9 @@
                     </div>
                 </div>
             </div>
-            <div class="panel-body">
+            <div class="panel-body {{if show-log "logbook"}}">
+                {{#unless show-log}}
                 <table class="table">
-                    <!--             <thead>
-                        <tr>
-                            <th>Detail</th>
-                            <th>Value</th>
-                        </tr>
-                    </thead>
-                    latest              : d.values.date,
-                    location            : d.values.city + ", " + d.values.country,
-                    incidents           : d.values.count,
-                    fatalities          : d.values.fatalities,
-                    injuries            : d.values.injuries,
-                    weapon              : d.values.weapon,name,
-                    weapon_count        : d.values.weapon.mode,
-                    perpetrator         : d.values.perpetrator.name,
-                    perpetrator_count   : d.values.perpetrator.mode,
-                    -->
                     <tbody>
                         <tr>
                             <td>
@@ -96,10 +81,37 @@
                         {{/if}}
                     </tbody>
                 </table>
+                {{else}}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th {{action "reverseLog"}} style="cursor:pointer;">Date</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>            
+                    <tbody>
+                    {{#each log as |log|}}
+                            <tr class="logrow">
+                                <td>
+                                    {{log.date}}
+                                </td>
+                                <td>
+                                    {{log.description}} 
+                                </td>
+                            </tr>
+                    {{/each}}
+                    </tbody>
+                </table>
+                {{/unless}}
             </div>
             <div class="panel-footer">
-                <button class="btn btn-default" {{action "openDiagram" "perpetrator"}}>Show Perpetrators</button>
-                <button class="btn btn-default" {{action "openDiagram" "weapon"}}>Show Weapons</button>
+                <button class="btn btn-default" {{action "openDiagram" "perpetrator"}}>Show all Perpetrators</button>
+                <button class="btn btn-default" {{action "openDiagram" "weapon"}}>Show all Weapons</button>
+                {{#unless show-log}}
+                    <button class="btn btn-default" {{action "showLog"}}>Show log</button>
+                {{else}}
+                    <button class="btn btn-default" {{action "closeLog"}}>Show stats</button>
+                {{/unless}}
             </div>
         </div>
     </div>

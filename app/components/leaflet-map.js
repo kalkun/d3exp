@@ -40,7 +40,6 @@ export default Ember.Component.extend({
 
     getRollUp : function(collection, byIncidents) {
         var _this = this;
-        // console.log("byIncidents ", byIncidents);
         return d3.nest()
             .key(function(d) { return d.stamp}) 
             .rollup(function(leaves) {
@@ -108,7 +107,8 @@ export default Ember.Component.extend({
         }, function(error, collection) {
             if (error) throw error;
 
-               var rollUp = _this.getRollUp(collection);
+
+            var rollUp = _this.getRollUp(collection);
             _this.set(
                 "rollUp", 
                 rollUp
@@ -141,7 +141,6 @@ export default Ember.Component.extend({
         
             map.on("viewreset", _this.update, _this);
             feature.on("click", function(a, b, c, d, e) {
-                // console.log("clicked circleClick ", a);
                 _this.send("circleClick", a);
             })
 
@@ -196,7 +195,6 @@ export default Ember.Component.extend({
         feature.attr("r", function(d) {
 
             var amount = byIncidents ? d.values.count : d.values.fatalities
-            // console.log(d.values.city, byIncidents, d.values.count, d.values.fatalities, zoom * Math.log(amount +1));
             return zoom * Math.log(amount +1)
 
         });
@@ -229,24 +227,39 @@ export default Ember.Component.extend({
         this.set("rollUp", rollUp);
         this.update(this.get("radius-toggle"));
         if (this.get("show-info")) {
-            var city_id = this.get("selected-info")
-            var city = this.get("rollUp").find(function(el) {
-                return el.key == city_id;
-            })
-            this.set("cityOverview", {
-                latest              : city.values.date,
-                location            : city.values.city + ", " + city.values.country,
-                incidents           : city.values.count,
-                fatalities          : city.values.fatalities,
-                injuries            : city.values.injuries,
-                weapon              : city.values.weapon.name,
-                weapon_count        : city.values.weapon.mode,
-                perpetrator         : city.values.perpetrator.name,
-                perpetrator_count   : city.values.perpetrator.mode,
-            })
-
+            this.updateCityFocus()
         }
     }),
+
+    updateCityFocus : function() {
+        var _this = this;
+        var city_id = this.get("selected-info")
+        var city    = this.get("rollUp").find(function(el) {
+            return el.values.stamp == city_id;
+        })
+        this.set("cityStats", this.get("data").filter(function(el) {
+            if (!_this.get("casual-toggle"))
+                return el.stamp == city_id && el.fatalities > 0;
+            return el.stamp == city_id;
+        }))
+
+        this.set("cityOverview", {
+            latest              : city.values.date,
+            location            : city.values.city + ", " + city.values.country,
+            incidents           : city.values.count,
+            fatalities          : city.values.fatalities,
+            injuries            : city.values.injuries,
+            weapon              : city.values.weapon.name,
+            weapon_count        : city.values.weapon.mode,
+            perpetrator         : city.values.perpetrator.name,
+            perpetrator_count   : city.values.perpetrator.mode
+        });
+        this.set("details", {
+            "type" : "perpetrator", 
+            "city" : city.values.city,
+            "country" : city.values.country
+        })
+    },
 
     actions : {
         casualties : function() {
@@ -260,37 +273,9 @@ export default Ember.Component.extend({
 
 
             this.set("selected-info", city.values.stamp)
-            // old:
-            this.set("cityStats", this.get("data").filter(function(el) {
-                return el.stamp == city.values.stamp;
-            }));
-
-            this.set("cityOverview", {
-                latest              : city.values.date,
-                location            : city.values.city + ", " + city.values.country,
-                incidents           : city.values.count,
-                fatalities          : city.values.fatalities,
-                injuries            : city.values.injuries,
-                weapon              : city.values.weapon.name,
-                weapon_count        : city.values.weapon.mode,
-                perpetrator         : city.values.perpetrator.name,
-                perpetrator_count   : city.values.perpetrator.mode,
-            })
-
-            this.set("details", {
-                "type" : "perpetrator", 
-                "city" : city.values.city,
-                "country" : city.values.country 
-            })
-
-            // this.set("show-diagram", true);
-
-
+            this.updateCityFocus();
             this.set("show-info", true);
         },
-        // showDiagram : function() {
-        //     this.set("show-diagram", true);
-        // },
 
         closeInfo : function(target) {
             this.set("show-info", false); 
@@ -307,6 +292,8 @@ export default Ember.Component.extend({
                 this.set('show-info', false);
             } else if (action.forward == "toggleCasualties") {
                 this.toggleProperty("casual-toggle")
+            } else if (action.forward == "reverseLog") {
+                this.set("cityStats", this.get("cityStats").reverseObjects());
             }
         }, 
 

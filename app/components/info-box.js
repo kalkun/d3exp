@@ -2,13 +2,6 @@ import Ember from 'ember';
 
 export default Ember.Component.extend({
 
-    // classNames : ["info-box"],
-
-    didRender : function() {
-        // alert("we're live!");
-        // console.log(this.get("data"))
-    },
-
     actions : {
         toggleCasualties : function() {
             this.sendAction('action', {
@@ -22,11 +15,23 @@ export default Ember.Component.extend({
             });
         },
         close : function(target) {
-            console.log(this.$(target).find(".info-box"))
-            console.log("target ", target)
             this.sendAction('action', {
                 forward : "closeInfo"
             });
+        },
+        showLog : function() {
+            // console.log(this.get("log"));
+            this.set("show-log", true);
+        },
+        closeLog : function() {
+            this.set("show-log", false);
+        },
+        reverseLog : function(key) {
+            this.sendAction('action', {
+                forward : "reverseLog",
+                key     : key
+            })
         }
+
     }
 });
