@@ -23,6 +23,7 @@ export default Ember.Component.extend({
             })
             .entries(this.get("data")).reverse()
         );
+        console.log("collection", this.get("collection"));
         this.get("color").domain(this.get("collection.length"))
         this.update()
     },
@@ -140,7 +141,8 @@ export default Ember.Component.extend({
             .attr("x", 0)
             .attr("y", "1.4em")
             .attr("style", "font-size:20px;")
-            .text(this.get("meta.type")[0].toUpperCase() + this.get("meta.type").slice(1, this.get("meta.type.length")) + "s")
+            // .text("Incidents by " + this.get("meta.type")[0].toUpperCase() + this.get("meta.type").slice(1, this.get("meta.type.length")) + "s")
+            .text("Incidents by " + this.get("meta.type"))
 
         title.append("tspan")
             .attr("x", 0)
