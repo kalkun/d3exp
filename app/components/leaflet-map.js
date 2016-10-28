@@ -4,7 +4,8 @@ export default Ember.Component.extend({
     hasInitialized : false,
     color : d3.scale.quantize()
             .range(['#fff5f0','#fee0d2','#fcbba1','#fc9272','#fb6a4a','#ef3b2c','#cb181d','#99000d'])
-            .domain([68,110]),
+            .domain([68, 116]),
+            // .domain([68,110]),
 
     setText : function(d) {
         return  "Last incident: " + d.values.date + 
@@ -38,10 +39,17 @@ export default Ember.Component.extend({
         }
     },
 
+    checkValidLocale : function(datapoint) {
+        return datapoint.city && datapoint.country && datapoint.city != "Unknown"; 
+    },
+
     getRollUp : function(collection, byIncidents) {
         var _this = this;
         return d3.nest()
-            .key(function(d) { return d.stamp}) 
+            .key(function(d) { 
+                // return _this.checkValidLocale(d) ? d.city + d.country : d.stamp;
+                return d.stamp;
+            }) 
             .rollup(function(leaves) {
                 return {
                     stamp       : leaves[0].stamp,
@@ -69,6 +77,7 @@ export default Ember.Component.extend({
         var _this = this;
        
         if (_this.get("hasInitialized")) return;
+        _this.set("hasInitialized", true);
          var map = L.map('map').setView([55.6, 12.5], 3),
 
              mapLink = 
@@ -88,7 +97,8 @@ export default Ember.Component.extend({
         var svg = d3.select("#map").select("svg"),
             g = svg.append("g");
 
-        d3.csv("locations_latlong.csv", function(d) {
+        // d3.csv("locations_latlong.csv", function(d) {
+        d3.csv("mergedDatasetCleaned2.csv", function(d) {
             if (!+d.latitude || !+d.longitude)
                 return null;
             return {
@@ -109,14 +119,13 @@ export default Ember.Component.extend({
 
 
             var rollUp = _this.getRollUp(collection);
+            // console.log("rollUp length ", rollUp.length);
             _this.set(
                 "rollUp", 
                 rollUp
             );
 
             var color = _this.get("color");
-
-
 
 
             var zoom = map.getZoom();
@@ -129,8 +138,10 @@ export default Ember.Component.extend({
             .style("stroke", "black")  
             .style("opacity", .6) 
             .style("fill", function(d) { 
-                return color(new Date(d.values.date).getYear())
-            })
+                return d.values.date.match(/-0$/) ? 
+                    color(new Date(d.values.date.replace(/-0$/, '-1')).getYear()) : 
+                    color(new Date(d.values.date).getYear());
+            });
 
                 
             _this.set(
@@ -140,18 +151,14 @@ export default Ember.Component.extend({
             )
         
             map.on("viewreset", _this.update, _this);
-            feature.on("click", function(a, b, c, d, e) {
+            feature.on("click", function(a) {
                 _this.send("circleClick", a);
             })
-
-
-
-
 
                 
             _this.update();
             _this.set("data", collection);
-            _this.set("hasInitialized", true);
+            
 
 
         })      
@@ -182,7 +189,11 @@ export default Ember.Component.extend({
             .style("stroke", "black")  
             .style("opacity", .6) 
             .style("fill", function(d) { 
-                return color(new Date(d.values.date).getYear())
+                // return color(new Date(d.values.date).getYear())
+                return d.values.date.match(/-0$/) ? 
+                    color(new Date(d.values.date.replace(/-0$/, '-1')).getYear()) : 
+                    color(new Date(d.values.date).getYear());
+
             })
         var text = this.get("text-titles").data(rollUp);
 
@@ -271,6 +282,7 @@ export default Ember.Component.extend({
         circleClick : function(city) {
 
 
+            console.log(city.values.stamp);
             this.set("selected-info", city.values.stamp)
             this.updateCityFocus();
             this.set("show-info", true);

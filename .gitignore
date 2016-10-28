@@ -23,3 +23,5 @@ testem.log
 .watchmanconfig
 .tests
 tests/
+dist.zip
+misc/
