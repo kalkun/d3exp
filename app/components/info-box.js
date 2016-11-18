@@ -2,6 +2,9 @@ import Ember from 'ember';
 
 export default Ember.Component.extend({
 
+    didRender : function() {
+        console.log("The log is ", this.get("log"));
+    },
     actions : {
         toggleCasualties : function(num) {
             this.sendAction('action', {

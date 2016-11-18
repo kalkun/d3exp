@@ -31,6 +31,8 @@ module.exports = function(defaults) {
   app.import("vendor/d3.v3.min.js")
   app.import("vendor/bootstrap.min.css")
   app.import("vendor/bootstrap.min.js")
+  // app.import("bower_components/taggle/dist/taggle.min.js")
+  app.import("bower_components/jquery-ui/jquery-ui.min.js")
 
   return app.toTree();
 };

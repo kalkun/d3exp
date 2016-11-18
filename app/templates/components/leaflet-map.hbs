@@ -3,12 +3,14 @@
     <div id="map"></div>
     <div id="controls">
         <div class="btn-group" role="group" class="{{if show-diagram "hide"}}">
+          <!-- <input type="text" name="filter" placeholder="Filter by" id="filterSearch" val> -->
           <button {{action "casualties"}} title="Toggle including incidents with no casualties on and off" type="button" class="btn {{if casual-toggle "btn-success" "btn-default"}}">
               {{if casual-toggle "All incidents" "Lethal incidents"}}
           </button>
           <button {{action "radius"}} title="Toggle between radius by number of incidents and radius by number of fatalities" type="button" class="btn {{if radius-toggle "btn-danger" "btn-success"}}">
               {{if radius-toggle "Radius by incidents" "Radius by casualties"}}
           </button>
+          {{input class="form-control" placeholder="Filter by" id="filterSearch" value=filterPerp}}
           <!-- <button type="button" class="btn btn-default">Right</button> -->
         </div>
     </div>
