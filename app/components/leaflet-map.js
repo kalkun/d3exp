@@ -4,9 +4,11 @@ export default Ember.Component.extend({
     hasInitialized : false,
     availableTags : [],
     listOfPerps : {},
-    "casual-toggle" : false, 
-    "radius-toggle" : false,
-    "filterPerp" : "",
+    "casual-toggle" : false,
+
+    "radius-toggle" : true,
+    filterVal   : "",
+    filterPerp : Ember.makeArray(),
 
     color : d3.scale.quantize()
             .range(['#fff5f0','#fee0d2','#fcbba1','#fc9272','#fb6a4a','#ef3b2c','#cb181d','#99000d'])
@@ -14,12 +16,17 @@ export default Ember.Component.extend({
             // .domain([68,110]),
 
     setText : function(d) {
-        return  "Last incident: " + d.values.date + 
+        return  "Last incident: " + d.values.date +
+
                 "\nLocation: " + d.values.city + ", " + d.values.country +
-                "\nIncidents: " + d.values.count + 
-                "\nTotal fatalities: " + d.values.fatalities + 
-                "\nTotal injuries: " + d.values.injuries + 
-                "\nMost frequent weapon: " + d.values.weapon.name + 
+                "\nIncidents: " + d.values.count +
+
+                "\nTotal fatalities: " + d.values.fatalities +
+
+                "\nTotal injuries: " + d.values.injuries +
+
+                "\nMost frequent weapon: " + d.values.weapon.name +
+
                 "\nMost frequent known perpetrator: " + d.values.perpetrator.name;
     },
 
@@ -32,8 +39,10 @@ export default Ember.Component.extend({
             var val = arr[i][key]
             if (val in exclude) {
                 continue;
-            } 
-            freqs[val] = (freqs[val] || 0) +1; 
+            }
+
+            freqs[val] = (freqs[val] || 0) +1;
+
             if (freqs[val] > max) {
                 max = freqs[val];
                 name = val;
@@ -46,7 +55,8 @@ export default Ember.Component.extend({
     },
 
     checkValidLocale : function(datapoint) {
-        return datapoint.city && datapoint.country && datapoint.city != "Unknown"; 
+        return datapoint.city && datapoint.country && datapoint.city != "Unknown";
+
     },
 
     getRollUp : function(collection, byIncidents) {
@@ -62,7 +72,8 @@ export default Ember.Component.extend({
                     }
                 }
                 return d.stamp;
-            }) 
+            })
+
             .rollup(function(leaves) {
                 return {
                     stamp       : leaves[0].stamp,
@@ -88,23 +99,26 @@ export default Ember.Component.extend({
 
     didRender : function() {
         var _this = this;
-       
+
         if (_this.get("hasInitialized")) return;
         _this.set("hasInitialized", true);
-         var map = L.map('map').setView([55.6, 12.5], 3),
+        var url = "https://api.mapbox.com/styles/v1/mapbox/light-v9/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiazRsayIsImEiOiJjaXcza2N0NGQwMDBsMnltbzBxdmJtbGg3In0.VXQxTuebIXo-YVKA1rULbA";
+        var map = L.map('map').setView([55.6, 12.5], 3),
 
-             mapLink = 
+             mapLink =
                 '<a href="http://openstreetmap.org">OpenStreetMap</a>';
              L.tileLayer(
-                'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                // 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                url, {
                 attribution: '&copy; ' + mapLink + ' Contributors',
                 maxZoom: 18,
-                minZoom:3
+                minZoom:3,
+                noWrap : true
                 }).addTo(map);
 
         new L.geoJson({"type": "LineString","coordinates":[[0,0],[0,0]]}).addTo(map);
 
-        map._initPathRoot() 
+        map._initPathRoot()
 
         _this.set("map", map);
         var svg = d3.select("#map").select("svg"),
@@ -114,71 +128,70 @@ export default Ember.Component.extend({
         var collection = _this.get("data");
 
             var rollUp = _this.getRollUp(collection.filter(function(el) {
-                    return el.perpetrator.toLowerCase().indexOf(_this.get("filterPerp")) > -1 && el.fatalities > 0;
+                    return (Ember.isEmpty(_this.get("filterPerp")) || _this.checkFilter(el.perpetrator.toLowerCase())) && el.fatalities > 0;
+                    // return el.perpetrator.toLowerCase().indexOf(_this.get("filterPerp")) > -1 && el.fatalities > 0;
                 }));
+            console.log(rollUp);
             _this.set("firstRollUp", true);
 
             _this.set("rollUp", rollUp);
 
             var color = _this.get("color");
 
-
             var zoom = map.getZoom();
             var feature = g.selectAll("circle")
             .data(rollUp);
             _this.set("feature", feature)
-            
+
             feature.enter().append("circle")
 
-            .style("stroke", "black")  
-            .style("opacity", .6) 
-            .style("fill", function(d) { 
-                return d.values.date.match(/-0$/) ? 
-                    color(new Date(d.values.date.replace(/-0$/, '-1')).getYear()) : 
+            .style("stroke", "black")
+
+            .style("opacity", .6)
+
+            .style("fill", function(d) {
+
+                return d.values.date.match(/-0$/) ?
+                    color(new Date(d.values.date.replace(/-0$/, '-1')).getYear()) :
+
                     color(new Date(d.values.date).getYear());
             });
 
-                
             _this.set(
-                "text-titles", 
+                "text-titles",
                 feature.append("title")
                     .text(_this.setText)
             )
-        
+
             map.on("viewreset", _this.update, _this);
             feature.on("click", function(a) {
                 _this.send("circleClick", a);
             })
 
-                
             _this.update();
             _this.set("data", collection);
-            
+
         // set up filter search input field
         Ember.$("#filterSearch").autocomplete({
-            source : _this.get("availableTags"),
-            change : function(event, ui) {
-                console.log("something changed: ", event, ui)
+            source: function(req, response) {
+                var results = $.ui.autocomplete.filter(_this.get("availableTags"), req.term);
+
+                response(results.slice(0, 10));//for getting 10 results
             },
             select : function(event, ui) {
-                // console.log("selected", ui.item);
-                
-                
-                console.log("setting filterPerp ", ui.item.value.toLowerCase());
-                _this.set("filterPerp", ui.item.value.toLowerCase());
-                console.log("filterPerp is now ", _this.get("filterPerp"));
-                _this.notifyPropertyChange("casual-toggle");
-                _this.set("lastFilterPerp", _this.get("filterPerp"));
+                if (_this.get("filterPerp").find(function(filter) {
+                    return filter == ui.item.value.toLowerCase();
+                })) {
+                    return;
+                } else {
+                    _this.get("filterPerp").addObject(ui.item.value.toLowerCase());
+                    _this.notifyPropertyChange("casual-toggle");
+                    _this.set("lastFilterPerp", _this.get("filterPerp"));
+                    _this.set("filterVal", "");
+                }
             }
         });
     },
-
-    filter : Ember.observer("filterPerp", function() {
-        if (!this.get("filterPerp") && this.get("lastFilterPerp")) {
-            this.notifyPropertyChange("casual-toggle");
-            this.set("lastFilterPerp", "");
-        }
-    }),
 
     update : function () {
 
@@ -197,7 +210,7 @@ export default Ember.Component.extend({
         this.set("feature", feature);
 
         feature.enter().append("circle")
-            
+
             .on("click", function(a) {
                 _this.send("circleClick", a);
             })
@@ -205,12 +218,17 @@ export default Ember.Component.extend({
             .text(this.setText)
 
         feature
-            .style("stroke", "black")  
-            .style("opacity", .6) 
-            .style("fill", function(d) { 
+            .style("stroke", "black")
+
+            .style("opacity", .6)
+
+            .style("fill", function(d) {
+
                 // return color(new Date(d.values.date).getYear())
-                return d.values.date.match(/-0$/) ? 
-                    color(new Date(d.values.date.replace(/-0$/, '-1')).getYear()) : 
+                return d.values.date.match(/-0$/) ?
+
+                    color(new Date(d.values.date.replace(/-0$/, '-1')).getYear()) :
+
                     color(new Date(d.values.date).getYear());
 
             })
@@ -228,33 +246,31 @@ export default Ember.Component.extend({
             return zoom * Math.log(amount +1)
 
         });
-        feature.attr("transform", function(d) { 
-            return "translate("+ 
-                map.latLngToLayerPoint(d.values.coords).x +","+ 
+        feature.attr("transform", function(d) {
+
+            return "translate("+
+
+                map.latLngToLayerPoint(d.values.coords).x +","+
+
                 map.latLngToLayerPoint(d.values.coords).y +")";
             }
         )
-        // d3.select("#map").selectAll("circle").unbind("click");
-        // feature.unbind("click");
     },
 
     toggler : Ember.observer("casual-toggle", "radius-toggle", function() {
         var _this = this;
-
         var rollUp;
         var collection = this.get("data");
 
-        // console.log("toggler called, filterby: " , _this.get("filterPerp"));
         if (this.get("casual-toggle")) {
             rollUp = this.getRollUp(collection.filter(function(el) {
-                return el.perpetrator.toLowerCase().indexOf(_this.get("filterPerp")) > -1;
+                return Ember.isEmpty(_this.get("filterPerp")) ||_this.checkFilter(el.perpetrator.toLowerCase());
             }));
         } else {
             rollUp = this.getRollUp(collection.filter(function(el) {
-                return el.perpetrator.toLowerCase().indexOf(_this.get("filterPerp")) > -1 && el.fatalities > 0;
+                return (Ember.isEmpty(_this.get("filterPerp")) || _this.checkFilter(el.perpetrator.toLowerCase())) && el.fatalities > 0;
             }));
         }
-
 
         this.set("rollUp", rollUp);
         this.update(this.get("radius-toggle"));
@@ -263,14 +279,16 @@ export default Ember.Component.extend({
         }
     }),
 
-    // returns true if name 
+    // returns true if name
+
     // is included by filter, otherwise false.
     checkFilter(name) {
-        _this.get("filterPerp").forEach(function(filter) {
+
+        return this.get("filterPerp").any(function(filter) {
             if (name.toLowerCase().indexOf(filter) > -1) {
                 return true;
             }
-        })
+        });
         return false;
     },
 
@@ -278,21 +296,13 @@ export default Ember.Component.extend({
         var _this = this;
         var city_id = this.get("selected-info")
         var city    = this.get("rollUp").find(function(el) {
-            if (el.values.stamp == city_id) {
-                console.log("City is ", el.values);
-            }
-            return el.values.stamp == city_id;
-            // && el.values.perpetrator.name.toLowerCase().indexOf(_this.get("filterPerp")) > -1;;
+            return el.values.stamp == city_id && (Ember.isEmpty(_this.get("filterPerp")) || _this.checkFilter(el.values.perpetrator.name.toLowerCase()));
         })
         this.set("cityStats", this.get("data").filter(function(el) {
-            if (!_this.get("casual-toggle"))
-                // if (el.stamp == city_id) {
-                //     console.log("el.stamp == city.id however filter is: ", el.perpetrator.toLowerCase().indexOf(_this.get("filterPerp")) > -1, el.perpetrator.toLowerCase(), _this.get("filterPerp"));
-                // }
-                return el.stamp == city_id && el.fatalities > 0 
-            // && el.perpetrator.toLowerCase().indexOf(_this.get("filterPerp")) > -1;
-            return el.stamp == city_id && el.fatalities > 0 
-            // && el.perpetrator.toLowerCase().indexOf(_this.get("filterPerp")) > -1;
+            if (!_this.get("casual-toggle")) {
+                return el.stamp == city_id && el.fatalities > 0 && (Ember.isEmpty(_this.get("filterPerp")) || _this.checkFilter(el.perpetrator.toLowerCase()));
+            }
+            return el.stamp == city_id && (Ember.isEmpty(_this.get("filterPerp")) || _this.checkFilter(el.perpetrator.toLowerCase()));
         }))
 
         this.set("cityOverview", {
@@ -307,7 +317,8 @@ export default Ember.Component.extend({
             perpetrator_count   : city.values.perpetrator.mode
         });
         this.set("details", {
-            "type" : "perpetrator", 
+            "type" : "perpetrator",
+
             "city" : city.values.city,
             "country" : city.values.country
         })
@@ -329,7 +340,8 @@ export default Ember.Component.extend({
         },
 
         closeInfo : function(target) {
-            this.set("show-info", false); 
+            this.set("show-info", false);
+
         },
 
         getMessage : function(action) {
@@ -347,14 +359,24 @@ export default Ember.Component.extend({
             } else if (action.forward == "reverseLog") {
                 this.set("cityStats", this.get("cityStats").reverseObjects());
             }
-        }, 
+        },
 
         closeDiagram : function() {
             // old:
             this.set("show-diagram", false);
+        },
+        clearFilters : function() {
+            this.set("filterPerp", []);
+        },
+        removeFilter(filter) {
+            // console.log("@removeFilter", filter);
+            this.set("filterPerp", this.get("filterPerp").removeObject(filter))
+            this.notifyPropertyChange("casual-toggle");
+            if (Ember.isEmpty(this.get("filterPerp")) && this.get("lastFilterPerp")) {
+                this.set("lastFilterPerp", "");
+            }
         }
+
     }
-
-
 
 });

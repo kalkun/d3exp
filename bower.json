@@ -14,6 +14,7 @@
     "qunit": "~1.18.0",
     "topojson": "https://github.com/mbostock/topojson.git#^1.6.26",
     "taggle": "^1.11.1",
-    "jquery-ui": "^1.12.1"
+    "jquery-ui": "^1.12.1",
+    "font-awesome": "~4.5.0"
   }
 }

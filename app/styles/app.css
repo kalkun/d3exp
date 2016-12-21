@@ -114,3 +114,24 @@
   background-color: #f9f9f9;
   border: 1px solid #c9c9c9;
 }
+.ui-menu.ui-widget.ui-widget-content.ui-autocomplete.ui-front li {
+  cursor:pointer;
+}
+.selected_filter {
+  // background-color: #f9f9f9;
+  margin-top:2px;
+  background-color: #78a8e3;
+  border: 1px solid #c9c9c9;
+  padding: 2px 5px 2px 5px;
+  color:white;
+  display:inline-block;
+}
+.selected_filter i.fa {
+  cursor:pointer;
+}
+circle {
+  cursor:pointer;
+}
+#controls {
+  max-width: 285px;
+}

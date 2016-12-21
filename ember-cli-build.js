@@ -24,15 +24,17 @@ module.exports = function(defaults) {
   // modules that you would like to import into your application
   // please specify an object with the list of modules as keys
   // along with the exports of each module as its value.
+  // app.import("vendor/font-awesome/css/font-awesome.min.css");
   app.import("vendor/topojson.v1.min.js");
   app.import("vendor/leaflet.js");
   app.import("vendor/leaflet.css");
   // app.import("vendor/d3.v4.0.0-rc.2.min.js");
-  app.import("vendor/d3.v3.min.js")
-  app.import("vendor/bootstrap.min.css")
-  app.import("vendor/bootstrap.min.js")
+  app.import("vendor/d3.v3.min.js");
+  app.import("vendor/bootstrap.min.css");
+  app.import("vendor/bootstrap.min.js");
   // app.import("bower_components/taggle/dist/taggle.min.js")
-  app.import("bower_components/jquery-ui/jquery-ui.min.js")
+  app.import("bower_components/jquery-ui/jquery-ui.min.js");
+  app.import("bower_components/jquery-ui/themes/ui-lightness/jquery-ui.css");
 
   return app.toTree();
 };
