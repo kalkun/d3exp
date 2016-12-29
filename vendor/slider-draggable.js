@@ -1,7 +1,6 @@
 // from http://stackoverflow.com/a/6095941 
 (function( $, undefined ) {
 
-console.log("FROM SLIDER-DRAGGABLE");
 $.widget("ui.dragslider", $.ui.slider, {
     
     options: $.extend({},$.ui.slider.prototype.options,{rangeDrag:false}),

@@ -98,7 +98,6 @@ export default Ember.Component.extend({
 
     setDomainRange : function() {
         var _this = this;
-        console.log(_this.get("startRange") - 1900, _this.get("startRange") - 1899 + _this.get("endRange") - _this.get("startRange"));
         _this.set("color", d3.scale.quantize()
             .range(['#fff5f0','#fee0d2','#fcbba1','#fc9272','#fb6a4a','#ef3b2c','#cb181d','#99000d'])
             .domain([_this.get("startRange") - 1900, _this.get("startRange") - 1899 + _this.get("endRange") - _this.get("startRange")]));
@@ -124,8 +123,6 @@ export default Ember.Component.extend({
                 noWrap : true
                 }).addTo(map);
 
-        new L.geoJson({"type": "LineString","coordinates":[[0,0],[0,0]]}).addTo(map);
-
         map._initPathRoot()
 
         _this.set("map", map);
@@ -138,7 +135,6 @@ export default Ember.Component.extend({
             var rollUp = _this.getRollUp(collection.filter(function(el) {
                     return (Ember.isEmpty(_this.get("filterPerp")) || _this.checkFilter(el)) && el.fatalities > 0;
                 }));
-            // console.log(rollUp[0]);
             _this.set("firstRollUp", true);
 
             _this.set("rollUp", rollUp);
@@ -182,7 +178,6 @@ export default Ember.Component.extend({
         Ember.$("#filterSearch").autocomplete({
             source: function(req, response) {
                 var results = $.ui.autocomplete.filter(_this.get("availableTags"), req.term);
-
                 response(results.slice(0, 10));//for getting 10 results
             },
             select : function(event, ui) {
@@ -195,6 +190,7 @@ export default Ember.Component.extend({
                     _this.notifyPropertyChange("casual-toggle");
                     _this.set("lastFilterPerp", _this.get("filterPerp"));
                     _this.set("filterVal", "");
+                    _this.get("availableTags").removeObject(ui.item.value);
                 }
             }
         });
@@ -217,9 +213,7 @@ export default Ember.Component.extend({
                 _this.set("endRange", ui.values[1]);
             }
         });
-        $(".drag-slide").css("margin-top", function() {
-            return ($(window).height() - $(".drag-slide").height() - 10) + "px";
-        });
+        
     },
 
     update : function () {
@@ -337,7 +331,7 @@ export default Ember.Component.extend({
                 return el.stamp == city_id && el.fatalities > 0 && _this.checkFilter(el, );
             }
             return el.stamp == city_id && _this.checkFilter(el);
-        }))
+        }).reverseObjects())
 
         this.set("cityOverview", {
             latest              : city.values.date,
@@ -367,7 +361,6 @@ export default Ember.Component.extend({
         },
         circleClick : function(city) {
 
-            // console.log(city.values.stamp);
             this.set("selected-info", city.values.stamp)
             this.updateCityFocus();
             this.set("show-info", true);

@@ -146,6 +146,11 @@ circle {
 }
 .slide-group {
   text-align:center;
+  position:absolute;
+  left: 0;
+  right: 0;
+  bottom:2px;
+  z-index:1;
 }
 .slide-group div {
   display:inline-block;
@@ -154,4 +159,5 @@ circle {
   width: 9%;
   text-align:center;
   font-weight: 600;
+  vertical-align:text-bottom;
 }

@@ -26,6 +26,13 @@
         </div>
     </div>
 </div>
+
+<div class="slide-group">
+  <div class="year">{{startRange}}</div>
+  <div class="drag-slide"></div>
+  <div class="year">{{endRange}}</div>
+</div>
+
 {{#unless show-diagram}}
 {{#if show-info}}
     <div {{action "closeInfo" this}} class="diagram-content">
@@ -37,9 +44,3 @@
 {{#if show-diagram}}
     {{circle-diagram data=cityStats meta=details action="closeDiagram"}}
 {{/if}}
-
-<div class="slide-group">
-  <div class="year">{{startRange}}</div>
-  <div class="drag-slide"></div>
-  <div class="year">{{endRange}}</div>
-</div>
