@@ -5,15 +5,14 @@ export default Ember.Component.extend({
     availableTags : [],
     listOfPerps : {},
     "casual-toggle" : false,
+    format : d3.time.format("%Y-%m-%d"),
+    startRange: 1968,
+    endRange: 2015,
 
     "radius-toggle" : true,
     filterVal   : "",
     filterPerp : Ember.makeArray(),
 
-    color : d3.scale.quantize()
-            .range(['#fff5f0','#fee0d2','#fcbba1','#fc9272','#fb6a4a','#ef3b2c','#cb181d','#99000d'])
-            .domain([68, 116]),
-            // .domain([68,110]),
 
     setText : function(d) {
         return  "Last incident: " + d.values.date +
@@ -97,10 +96,19 @@ export default Ember.Component.extend({
             .entries(collection)
     },
 
+    setDomainRange : function() {
+        var _this = this;
+        console.log(_this.get("startRange") - 1900, _this.get("startRange") - 1899 + _this.get("endRange") - _this.get("startRange"));
+        _this.set("color", d3.scale.quantize()
+            .range(['#fff5f0','#fee0d2','#fcbba1','#fc9272','#fb6a4a','#ef3b2c','#cb181d','#99000d'])
+            .domain([_this.get("startRange") - 1900, _this.get("startRange") - 1899 + _this.get("endRange") - _this.get("startRange")]));
+    },
+
     didRender : function() {
         var _this = this;
 
         if (_this.get("hasInitialized")) return;
+            _this.setDomainRange();
         _this.set("hasInitialized", true);
         var url = "https://api.mapbox.com/styles/v1/mapbox/light-v9/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiazRsayIsImEiOiJjaXcza2N0NGQwMDBsMnltbzBxdmJtbGg3In0.VXQxTuebIXo-YVKA1rULbA";
         var map = L.map('map').setView([55.6, 12.5], 3),
@@ -128,10 +136,9 @@ export default Ember.Component.extend({
         var collection = _this.get("data");
 
             var rollUp = _this.getRollUp(collection.filter(function(el) {
-                    return (Ember.isEmpty(_this.get("filterPerp")) || _this.checkFilter(el.perpetrator.toLowerCase())) && el.fatalities > 0;
-                    // return el.perpetrator.toLowerCase().indexOf(_this.get("filterPerp")) > -1 && el.fatalities > 0;
+                    return (Ember.isEmpty(_this.get("filterPerp")) || _this.checkFilter(el)) && el.fatalities > 0;
                 }));
-            console.log(rollUp);
+            // console.log(rollUp[0]);
             _this.set("firstRollUp", true);
 
             _this.set("rollUp", rollUp);
@@ -191,6 +198,28 @@ export default Ember.Component.extend({
                 }
             }
         });
+
+        Ember.$(".drag-slide").dragslider({
+            range : true,
+            min : 1968,
+            max : 2015,
+            rangeDrag: true,
+            values : [1968, 2015],
+            stop : function(event, ui) {
+                _this.set("startRange", ui.values[0]);
+                _this.set("endRange", ui.values[1]);
+
+                _this.setDomainRange();
+                _this.notifyPropertyChange("casual-toggle");
+            },
+            slide : function(event, ui) {
+                _this.set("startRange", ui.values[0]);
+                _this.set("endRange", ui.values[1]);
+            }
+        });
+        $(".drag-slide").css("margin-top", function() {
+            return ($(window).height() - $(".drag-slide").height() - 10) + "px";
+        });
     },
 
     update : function () {
@@ -204,6 +233,7 @@ export default Ember.Component.extend({
         var color = this.get("color");
         var byIncidents = this.get("radius-toggle")
 
+        _this.setDomainRange();
         feature = feature.data(rollUp)
         feature.exit().remove();
 
@@ -224,7 +254,6 @@ export default Ember.Component.extend({
 
             .style("fill", function(d) {
 
-                // return color(new Date(d.values.date).getYear())
                 return d.values.date.match(/-0$/) ?
 
                     color(new Date(d.values.date.replace(/-0$/, '-1')).getYear()) :
@@ -264,11 +293,11 @@ export default Ember.Component.extend({
 
         if (this.get("casual-toggle")) {
             rollUp = this.getRollUp(collection.filter(function(el) {
-                return Ember.isEmpty(_this.get("filterPerp")) ||_this.checkFilter(el.perpetrator.toLowerCase());
+                return _this.checkFilter(el);
             }));
         } else {
             rollUp = this.getRollUp(collection.filter(function(el) {
-                return (Ember.isEmpty(_this.get("filterPerp")) || _this.checkFilter(el.perpetrator.toLowerCase())) && el.fatalities > 0;
+                return _this.checkFilter(el) && el.fatalities > 0;
             }));
         }
 
@@ -279,12 +308,17 @@ export default Ember.Component.extend({
         }
     }),
 
-    // returns true if name
-
     // is included by filter, otherwise false.
-    checkFilter(name) {
-
-        return this.get("filterPerp").any(function(filter) {
+    checkFilter(el) {
+        var name = el.perpetrator ? el.perpetrator.toLowerCase() : el.values.perpetrator.name.toLowerCase();
+        var date = el.date || el.values.date;
+        if (
+                this.format.parse(date).getTime() < this.format.parse(this.get("startRange") + "-01-01").getTime() ||
+                this.format.parse(date).getTime() > this.format.parse(this.get("endRange") + "-12-31").getTime()
+            ) {
+            return false;
+        }
+        return Ember.isEmpty(this.get("filterPerp")) || this.get("filterPerp").any(function(filter) {
             if (name.toLowerCase().indexOf(filter) > -1) {
                 return true;
             }
@@ -296,13 +330,13 @@ export default Ember.Component.extend({
         var _this = this;
         var city_id = this.get("selected-info")
         var city    = this.get("rollUp").find(function(el) {
-            return el.values.stamp == city_id && (Ember.isEmpty(_this.get("filterPerp")) || _this.checkFilter(el.values.perpetrator.name.toLowerCase()));
+            return el.values.stamp == city_id && _this.checkFilter(el);
         })
         this.set("cityStats", this.get("data").filter(function(el) {
             if (!_this.get("casual-toggle")) {
-                return el.stamp == city_id && el.fatalities > 0 && (Ember.isEmpty(_this.get("filterPerp")) || _this.checkFilter(el.perpetrator.toLowerCase()));
+                return el.stamp == city_id && el.fatalities > 0 && _this.checkFilter(el, );
             }
-            return el.stamp == city_id && (Ember.isEmpty(_this.get("filterPerp")) || _this.checkFilter(el.perpetrator.toLowerCase()));
+            return el.stamp == city_id && _this.checkFilter(el);
         }))
 
         this.set("cityOverview", {
@@ -348,7 +382,6 @@ export default Ember.Component.extend({
             if (action.forward == "showDiagram") {
 
                 var pieType = action.type
-                // var currentCity = this.get("details");
                 this.set("details.type", pieType)
                 this.set("show-diagram", true);
             } else if (action.forward == "closeInfo") {
@@ -369,7 +402,6 @@ export default Ember.Component.extend({
             this.set("filterPerp", []);
         },
         removeFilter(filter) {
-            // console.log("@removeFilter", filter);
             this.set("filterPerp", this.get("filterPerp").removeObject(filter))
             this.notifyPropertyChange("casual-toggle");
             if (Ember.isEmpty(this.get("filterPerp")) && this.get("lastFilterPerp")) {

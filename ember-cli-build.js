@@ -34,7 +34,9 @@ module.exports = function(defaults) {
   app.import("vendor/bootstrap.min.js");
   // app.import("bower_components/taggle/dist/taggle.min.js")
   app.import("bower_components/jquery-ui/jquery-ui.min.js");
-  app.import("bower_components/jquery-ui/themes/ui-lightness/jquery-ui.css");
-
+  app.import("bower_components/jquery-ui/themes/blitzer/jquery-ui.css");
+  // app.import("bower_components/nouislider/distribute/nouislider.min.js");
+  // app.import("bower_components/nouislider/distribute/nouislider.min.css")
+  app.import("vendor/slider-draggable.js");
   return app.toTree();
 };

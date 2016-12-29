@@ -22,7 +22,7 @@
 .map-content {
     position:absolute;
     top:0;
-    bottom:0;
+    bottom:25px;
     width:100%;
     // margin-left:-8px;
 }
@@ -134,4 +134,24 @@ circle {
 }
 #controls {
   max-width: 285px;
+}
+.drag-slide {
+  margin-left:auto;
+  margin-right:auto;
+  width: 80%;
+  max-width: 1000px;
+}
+.drag-slide .ui-slider-range {
+  cursor: pointer;
+}
+.slide-group {
+  text-align:center;
+}
+.slide-group div {
+  display:inline-block;
+}
+.slide-group .year {
+  width: 9%;
+  text-align:center;
+  font-weight: 600;
 }
