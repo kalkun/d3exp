@@ -138,7 +138,7 @@ circle {
 .drag-slide {
   margin-left:auto;
   margin-right:auto;
-  width: 80%;
+  flex-basis: 80%;
   max-width: 1000px;
 }
 .drag-slide .ui-slider-range {
@@ -152,12 +152,39 @@ circle {
   bottom:2px;
   z-index:1;
 }
+
 .slide-group div {
   display:inline-block;
+  align-self: baseline;
 }
 .slide-group .year {
-  width: 9%;
-  text-align:center;
+  // width: 9%;
+  // text-align:center;
   font-weight: 600;
-  vertical-align:text-bottom;
+  flex-grow:1;
+  flex-basis:30%;
+
+  // vertical-align:text-bottom;
+}
+.slide-group {
+  display: flex;
+
+}
+
+@media all and (max-width: 580px) {
+  #controls {
+    right: 40px;
+    max-width:235px;
+  }
+  #controls button {
+    width: 115px;
+    font-size:12px;
+    padding-left:3px;
+  }
+  // .slide-group {
+
+  // }
+  // .slide-group .drag-slide {
+  //   width: 60%;
+  // }
 }

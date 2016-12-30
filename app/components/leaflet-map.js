@@ -110,12 +110,12 @@ export default Ember.Component.extend({
             _this.setDomainRange();
         _this.set("hasInitialized", true);
         var url = "https://api.mapbox.com/styles/v1/mapbox/light-v9/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiazRsayIsImEiOiJjaXcza2N0NGQwMDBsMnltbzBxdmJtbGg3In0.VXQxTuebIXo-YVKA1rULbA";
+        // var url = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
         var map = L.map('map').setView([55.6, 12.5], 3),
 
              mapLink =
                 '<a href="http://openstreetmap.org">OpenStreetMap</a>';
              L.tileLayer(
-                // 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 url, {
                 attribution: '&copy; ' + mapLink + ' Contributors',
                 maxZoom: 18,

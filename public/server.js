@@ -2,12 +2,10 @@ var cluster = require('cluster'),
     http = require('http'),
     numCPUs = require("os").cpus().length,
     express = require("express"),
-    app     = express();
+    app     = express(),
+    compression = require("compression");
 
-app.use(function(req, res, next) {
-    console.log("request", req.Url);
-    next();
-});
+app.use(compression({filter : compression.filter}));
 app.use(express.static("./"));
 
 if (cluster.isMaster) {

@@ -35,6 +35,7 @@ module.exports = function(defaults) {
   // app.import("bower_components/taggle/dist/taggle.min.js")
   app.import("bower_components/jquery-ui/jquery-ui.min.js");
   app.import("bower_components/jquery-ui/themes/blitzer/jquery-ui.css");
+  app.import("vendor/jquery.ui.touch-punch.min.js");
   // app.import("bower_components/nouislider/distribute/nouislider.min.js");
   // app.import("bower_components/nouislider/distribute/nouislider.min.css")
   app.import("vendor/slider-draggable.js");
